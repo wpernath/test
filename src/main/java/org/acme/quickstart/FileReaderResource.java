@@ -1,8 +1,9 @@
 package org.acme.quickstart;
 
 import java.io.IOException;
+import java.io.File;
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.util.Date;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -26,11 +27,22 @@ public class FileReaderResource {
     @GET
     @Produces(MediaType.TEXT_PLAIN)
     public String reader() {
-        LOG.info("Reading from " + path + "/" + fileName);
-
+        File f = new File(path + "/" + fileName);
+        LOG.info("Reading from " + f.getAbsolutePath());
+        
         try {
-            String txt = Files.readString(Paths.get(path + "/" + fileName));
-            return txt;    
+            String txt = "There is no text file at '" + f.getAbsolutePath() + "'! A new file will be created.";
+            if( !f.exists()) {
+                LOG.info(f.getAbsolutePath() + " does not exist");
+                Files.writeString(f.toPath(), txt);
+            }
+            else {
+                LOG.info("File exists. Reading and returning contents.");                
+                txt = Files.readString(f.toPath());
+                txt += "\nNew Access at: " + new Date(System.currentTimeMillis());
+                Files.writeString(f.toPath(), txt);
+            }
+            return txt;
         }
         catch(IOException e) {
             return e.toString();
